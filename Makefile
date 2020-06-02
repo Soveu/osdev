@@ -1,5 +1,12 @@
+ASM=yasm
 multiboot:
-	nasm -f elf32 multiboot_header.asm
-	nasm -f elf32 boot.asm
-	ld -n -m elf_i386 --script=linker.ld multiboot_header.o boot.o -o kernel.bin
+	$(ASM) -f elf64 multiboot_header.asm
+	$(ASM) -f elf64 boot.asm
+	ld -n --script=linker.ld multiboot_header.o boot.o -o kernel.bin
+
+clear:
 	rm boot.o multiboot_header.o
+
+run:
+	qemu-system-x86_64 -kernel kernel.bin
+
