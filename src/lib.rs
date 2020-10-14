@@ -13,8 +13,6 @@ unsafe fn panic(_info: &core::panic::PanicInfo) -> ! {
 
 #[no_mangle]
 fn rust_start() {
-    x86_64::instructions::interrupts::int3();
-
     vga::print(b"HELLO FROM RUST!", vga::Color::Message);
     vga::print(b"WTF", vga::Color::Message);
 }
