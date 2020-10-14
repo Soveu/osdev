@@ -6,15 +6,14 @@ release:
 	cargo build --release
 	$(ASM) -f elf64 asm/boot.asm
 	ld -n --script=asm/linker.ld boot.o $(KERNELPATHRELEASE) -o kernel.bin
-	rm boot.o
 
 debug:
 	cargo build
 	$(ASM) -f elf64 asm/boot.asm
 	ld -n --script=asm/linker.ld boot.o $(KERNELPATHDEBUG) -o kernel.bin
-	rm boot.o
 
 clear:
+	cargo clean
 	rm boot.o kernel.bin
 
 run:
