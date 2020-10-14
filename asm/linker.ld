@@ -1,18 +1,15 @@
-ENTRY(bootstrap_start)
+ENTRY(_start)
 OUTPUT_FORMAT(elf32-i386)
 
 SECTIONS {
     . = 1M;
     .boot : {
-      boot.o (.text)
-    }
-    .text   BLOCK(4K) : ALIGN(4K) { 
-      *(EXCLUDE_FILE(*boot.o) .text)
-      *(.text) 
+      boot.o (.boot)
     }
 
-    .data   BLOCK(4K) : ALIGN(4K) { *(.data) }
-    .rodata BLOCK(4K) : ALIGN(4K) { *(.rodata) }
-    .bss    BLOCK(4K) : ALIGN(4K) { *(.bss) }
+    .text   : ALIGN(4K) { *(.text) }
+    .data   : ALIGN(4K) { *(.data) }
+    .rodata : ALIGN(4K) { *(.rodata) }
+    .bss    : ALIGN(4K) { *(.bss) }
 }
 

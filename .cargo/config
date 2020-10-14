@@ -1,5 +1,12 @@
 [build]
 target = "amd64-kernel-target.json"
+rustflags = [
+  "-C", "link-arg=--script=asm/linker.ld",
+  "-C", "link-arg=boot.o"
+]
+
+[target.'cfg(target_os = "none")']
+runner = "qemu-system-x86_64 -m 1G -enable-kvm -cpu host -kernel"
 
 [unstable]
 build-std = ["core"]
