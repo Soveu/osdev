@@ -2,7 +2,7 @@
 target = "amd64-kernel-target.json"
 
 [target.'cfg(target_os = "none")']
-runner = "qemu-system-x86_64 -m 1G -enable-kvm -cpu host -s -kernel"
+runner = "qemu-system-x86_64 -m 1G -enable-kvm -cpu host -s -d int -kernel"
 
 [unstable]
 build-std = ["core"]

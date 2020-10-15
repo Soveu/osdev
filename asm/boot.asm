@@ -106,10 +106,9 @@ pog_mode_start:
   mov rax, 0x2F412F412F412F41 ;AAAA
   mov [0xB8000], rax
 
-  mov rax, 0x200000 * 512
-  sub rax, 1
+  mov rax, 0x200000 * 510
+  xor rsp, rsp
   mov rsp, rax
-  mov rbp, rax
 
   call rust_start
 
