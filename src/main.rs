@@ -14,7 +14,7 @@ unsafe fn panic(_info: &core::panic::PanicInfo) -> ! {
 
 #[no_mangle]
 fn rust_start() {
-    vga::print(b"HELLO FROM RUST!", vga::Color::Message);
-    vga::print(b"WTF", vga::Color::Message);
+    vga::print(b"HELLO FROM RUST!\n");
+    vga::print(b"E");
 }
 

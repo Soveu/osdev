@@ -9,7 +9,7 @@ struct VGACell {
 }
 
 #[allow(non_snake_case)]
-const fn VGAPTR() -> *mut [[VGACell; 80]; 25] {
+const fn VGAPTR() -> *mut VGA {
     0xB8000 as *mut _
 }
 
@@ -28,12 +28,12 @@ pub enum Color {
     Error = 0xC,
 }
 
-pub fn print(s: &[u8], color: Color) {
+pub fn print(s: &[u8]) {
     let mut col = COLUMN.lock();
     let vga = unsafe { &mut *VGAPTR() };
 
     for x in s.iter().copied() {
-        vga_print_byte(vga, &mut *col, x, color as u8);
+        vga_print_byte(vga, &mut *col, x, 0xE);
     }
 }
 
@@ -46,8 +46,8 @@ fn vga_print_byte(vga: &mut VGA, col: &mut usize, character: u8, color: u8) {
         return;
     }
 
-    /*
-    if !(0x20..0x7F).contains(&character) && character != b'\n' {
+    /* 
+    if !(0x20..0x7F).contains(&character) {
         return vga_print_byte(vga, col, 0x41, color);
     }
     */
