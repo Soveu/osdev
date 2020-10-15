@@ -1,16 +1,28 @@
 {
   "llvm-target": "x86_64-unknown-none",
-  "data-layout": "e-m:e-i64:64-f80:128-n8:16:32:64-S128",
+  "cpu": "sandybridge",
   "arch": "x86_64",
+  "features": "-mmx,-sse,+soft-float",
+
+  "data-layout": "e-m:e-i64:64-f80:128-n8:16:32:64-S128",
   "target-endian": "little",
   "target-pointer-width": "64",
   "target-c-int-width": "32",
+
   "os": "none",
   "executables": true,
-  "linker-flavor": "ld",
-  "linker": "ld",
   "panic-strategy": "abort",
   "disable-redzone": true,
-  "features": "-mmx,-sse,+soft-float"
+
+  "dynamic-linking": false,
+  "linker-flavor": "ld",
+  "linker": "ld",
+
+  "pre-link-args": {
+    "ld": [
+      "--script=asm/linker.ld",
+      "boot.o"
+    ]
+  }
 }
 
