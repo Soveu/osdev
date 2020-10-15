@@ -15,3 +15,10 @@ _start:
   hlt
   jmp _start
 
+
+bits 64
+section .text
+
+longmode_start:
+  hlt
+  jmp longmode_start

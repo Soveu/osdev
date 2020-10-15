@@ -15,11 +15,15 @@
   "disable-redzone": true,
 
   "dynamic-linking": false,
-  "linker-flavor": "ld",
-  "linker": "ld",
+  "linker-flavor": "ld.lld",
+  "linker": "rust-lld",
 
   "pre-link-args": {
     "ld": [
+      "--script=asm/linker.ld",
+      "boot.o"
+    ],
+    "ld.lld": [
       "--script=asm/linker.ld",
       "boot.o"
     ]

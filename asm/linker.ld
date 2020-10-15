@@ -7,9 +7,9 @@ SECTIONS {
       boot.o (.boot)
     }
 
-    .text   : ALIGN(4K) { *(.text) }
-    .data   : ALIGN(4K) { *(.data) }
-    .rodata : ALIGN(4K) { *(.rodata) }
-    .bss    : ALIGN(4K) { *(.bss) }
+    .text   : ALIGN(4K) { *(.text .text.*) }
+    .data   : ALIGN(4K) { *(.data .data.*) }
+    .rodata : ALIGN(4K) { *(.rodata .rodata.*) }
+    .bss    : ALIGN(4K) { *(.bss .bss.*) }
 }
 
