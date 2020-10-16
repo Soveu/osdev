@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-
 #![feature(lang_items)]
 #![feature(asm)]
 
@@ -10,23 +9,40 @@ use x86_64;
 
 #[panic_handler]
 unsafe fn panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {}
+    x86_64::instructions::interrupts::disable();
+    loop {
+        x86_64::instructions::hlt();
+    }
 }
 
 fn recurse(x: u8) {
     let a = &[x];
     vga::VGA_TEXT.lock().print(a);
-    recurse(x+1);
+    recurse(x + 1);
+}
+
+#[inline(never)]
+fn crash() {
+    println!("MMMMMMMMMMMMMMMM");
 }
 
 #[no_mangle]
 fn rust_start() {
-    vga::VGA_TEXT.lock().print(b"Henlo!");
+    let f: fn() = crash;
+    let f: usize = unsafe { core::mem::transmute(f) };
 
-    print!("asdf");
+    /* this magically doesnt crash */
+    print!("{:?}", f);
 
-    vga::VGA_TEXT.lock().print(b"NEWLINE\n");
+    for _ in 0..(1 << 30) {
+        unsafe {
+            asm!("nop");
+        }
+    }
 
-    println!("asdf");
+    /* this does */
+    crash();
+    println!("AAAAAAAAAAAAA");
+
+    unreachable!();
 }
-

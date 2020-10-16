@@ -1,4 +1,4 @@
-#[inline(always)]
+#[inline(never)]
 pub unsafe fn rep_movsb(src: *const u8, dst: *mut u8, count: usize) {
     asm!(
         "rep movsb BYTE PTR [rdi], BYTE PTR [rsi]",
@@ -24,8 +24,8 @@ pub unsafe fn rep_stosb(dst: *mut u8, val: u8, count: usize) {
 pub unsafe fn repe_cmpsb(
     mut a: *const u8,
     mut b: *const u8,
-    mut n: usize) 
--> (*const u8, *const u8, usize) {
+    mut n: usize,
+) -> (*const u8, *const u8, usize) {
     asm!(
         "rep cmpsb BYTE PTR [rdi], BYTE PTR [rsi]",
         inout("rcx") n => n,
@@ -87,4 +87,3 @@ pub unsafe extern "C" fn memcmp(a: *const u8, b: *const u8, n: usize) -> i32 {
     let res: u8 = *a.offset(-1) - *b.offset(-1);
     return res as i8 as i32;
 }
-

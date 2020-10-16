@@ -14,4 +14,3 @@ fn main() {
     println!("cargo:warning=yasm ended with code {}", code);
     assert_eq!(code, 0);
 }
-

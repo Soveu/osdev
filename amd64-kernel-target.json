@@ -2,7 +2,7 @@
   "llvm-target": "x86_64-unknown-none",
   "cpu": "sandybridge",
   "arch": "x86_64",
-  "features": "-mmx,-sse,+soft-float",
+  "features": "-mmx,-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-sse4a,-3dnow,-3dnowa,-avx,+soft-float",
 
   "data-layout": "e-m:e-i64:64-f80:128-n8:16:32:64-S128",
   "target-endian": "little",
@@ -13,10 +13,13 @@
   "executables": true,
   "panic-strategy": "abort",
   "disable-redzone": true,
+  "eliminate-frame-pointer": false,
 
   "dynamic-linking": false,
   "linker-flavor": "ld",
   "linker": "ld",
+  "relro-level": "off",
+  "env": "none",
 
   "pre-link-args": {
     "ld": [

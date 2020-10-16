@@ -30,9 +30,6 @@ SECTIONS {
     .bss    : ALIGN(4K) { 
       BSS_START = .;
       *(.bss .bss.*)
-
-      . = ALIGN(4K);
-      *(.stack)
     }
 
     IMAGE_END = .;

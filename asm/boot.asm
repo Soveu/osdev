@@ -109,9 +109,12 @@ pog_mode_start:
   mov rax, 0x200000 * 510
   xor rsp, rsp
   mov rsp, rax
+  mov rbp, rax
 
   call rust_start
 
+  cli
+.halt:
   hlt
-  jmp pog_mode_start
+  jmp .halt
 

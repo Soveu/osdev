@@ -4,8 +4,8 @@ use spin;
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct VGACell {
-    character:  u8,
-    color:      u8,
+    character: u8,
+    color: u8,
 }
 
 const BLACK: VGACell = VGACell {
@@ -21,7 +21,7 @@ impl VGA {
     const fn _vgaptr() -> *mut [[VGACell; 80]; 25] {
         0xB8000 as *mut _
     }
-    fn vgaptr(&mut self) -> (&mut usize ,&mut [[VGACell; 80]; 25]) {
+    fn vgaptr(&mut self) -> (&mut usize, &mut [[VGACell; 80]; 25]) {
         /* SAFETY: we are the only one having this pointer */
         let p = unsafe { &mut *Self::_vgaptr() };
         (&mut self.column, p)
@@ -36,7 +36,7 @@ impl VGA {
             self.vga_print_byte(x, 0xE);
         }
     }
-    
+
     fn vga_print_byte(&mut self, character: u8, color: u8) {
         let (col, vga) = self.vgaptr();
 
@@ -47,21 +47,20 @@ impl VGA {
         if character == b'\n' {
             return;
         }
-    
+
         if !(0x20..0x7F).contains(&character) {
             return self.vga_print_byte(0x41, color);
         }
-    
+
         let ptr = &mut vga[24][*col];
-        let c = VGACell {
-            character,
-            color,
-        };
-        unsafe { ptr::write_volatile(ptr, c); }
-    
+        let c = VGACell { character, color };
+        unsafe {
+            ptr::write_volatile(ptr, c);
+        }
+
         *col += 1;
     }
-    
+
     fn vga_newline(vga: &mut [[VGACell; 80]; 25]) {
         vga.rotate_left(1);
         unsafe {
@@ -98,4 +97,3 @@ pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     VGA_TEXT.lock().write_fmt(args).unwrap();
 }
-
