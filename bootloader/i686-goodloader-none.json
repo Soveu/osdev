@@ -1,0 +1,28 @@
+{
+  "llvm-target": "i686-unknown-none",
+  "arch": "x86",
+  "cpu": "pentium4",
+  "data-layout": "e-m:e-p:32:32-p270:32:32-p271:32:32-p272:64:64-f64:32:64-f80:32-n8:16:32-S128",
+  "features": "-mmx,-sse,+soft-float",
+
+  "env": "",
+  "os": "",
+  "executables": true,
+
+  "linker": "rust-lld",
+  "linker-flavor": "ld.lld",
+
+  "panic-strategy": "abort",
+  "disable-redzone": true,
+  "singlethread": true,
+  "stack-probes": false,
+  "target-c-int-width": "32",
+  "max-atomic-width": 64,
+  "target-pointer-width": "32",
+  "target-endian": "little",
+  "relro-level": "off",
+
+  "pre-link-args": {
+    "ld.lld": ["--script=linker.ld"]
+  }
+}
