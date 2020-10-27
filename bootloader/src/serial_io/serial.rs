@@ -46,7 +46,7 @@ pub struct Port<T: InOut> {
 
 impl<T: InOut> Port<T> {
     /// Create a port which can handle values of `T` size.
-    pub unsafe fn new(port: u16) -> Port<T> {
+    pub const unsafe fn new(port: u16) -> Port<T> {
         Port {
             port,
             phantom: PhantomData,
@@ -84,7 +84,7 @@ pub struct SerialPort {
 }
 
 impl SerialPort {
-    pub unsafe fn new(port_base: u16) -> SerialPort {
+    pub const unsafe fn new(port_base: u16) -> SerialPort {
         SerialPort {
             initialized: false,
             data: Port::new(port_base),

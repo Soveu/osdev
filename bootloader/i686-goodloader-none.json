@@ -6,7 +6,7 @@
   "features": "-mmx,-sse,+soft-float",
 
   "env": "",
-  "os": "",
+  "os": "none",
   "executables": true,
 
   "linker": "rust-lld",

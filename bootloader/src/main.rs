@@ -4,17 +4,20 @@
 #![feature(asm)]
 #![feature(llvm_asm)]
 #![feature(naked_functions)]
+#![feature(const_fn)]
 
 pub mod multiboot_header;
 pub mod x86;
-
-mod serial_io;
-
-use serial_io::SerialIO;
-use core::fmt::Write;
+pub mod serial_io;
+pub mod multiboot;
 
 #[panic_handler]
-fn panic_handler(_info: &core::panic::PanicInfo) -> ! {
+fn panic_handler(info: &core::panic::PanicInfo) -> ! {
+    x86::disable_interrupts();
+
+    print!("\nPANIK\n");
+    print!("\n{:?}\n", info);
+
     todo();
 }
 
@@ -51,37 +54,23 @@ pub fn _start() -> ! {
 }
 
 extern "fastcall" fn start(magic: i32, multiboot_info: u32) -> ! {
-    let mut io = SerialIO::new();
-    write!(io, "Hello!\n");
+    print!("Hello!\n");
+    assert_eq!(magic, 0x2BADB002);
+    print!("Loaded by multiboot\n");
 
-    if magic != 0x2BADB002 {
-        write!(io, "Bad magic: got {:x} expected 0x2BADB002\n", magic);
-        todo();
+    let multiboot = multiboot_info as *const multiboot::Info;
+    let multiboot = unsafe { &*multiboot };
+
+    print!("\ncmdline: {:?}\n", multiboot.cmdline());
+
+    print!("\nModules:\n");
+
+    for module in multiboot.modules() {
+        print!("{:?} size: {}\n", module.name(), module.bytes().len());
     }
 
-    let mb = unsafe {
-        multiboot::Multiboot::new(
-            multiboot_info as u64,
-            |x, sz| { core::ptr::slice_from_raw_parts(x as *const u8, sz).as_ref() }
-        )
-    };
+    print!("\nDone\n");
 
-    let mb = match mb {
-        Some(x) => x,
-        None => {
-            write!(io, "no multiboot\n");
-            todo();
-        },
-    };
-
-    if let Some(lower) = mb.lower_memory_bound() {
-        write!(io, "Lower memory: {:x} kilobytes\n", lower);
-    }
-    if let Some(upper) = mb.upper_memory_bound() {
-        write!(io, "Upper memory: {:x} kilobytes\n", upper);
-    }
-
-    write!(io, "Done\n");
     todo();
 }
 

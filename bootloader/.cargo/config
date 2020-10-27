@@ -3,3 +3,6 @@ target = "i686-goodloader-none.json"
 
 [unstable]
 build-std = ["core"]
+
+[target.'cfg(target_os = "none")']
+runner = "qemu-system-i386 -serial stdio -m 1G -display none -kernel"
