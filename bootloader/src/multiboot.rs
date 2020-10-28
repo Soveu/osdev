@@ -2,6 +2,7 @@ use core::mem::MaybeUninit;
 use core::slice;
 use core::str;
 
+/* SAFETY: Pointer needs to point to a valid C string */
 unsafe fn strlen(ptr: *const u8) -> usize {
     let mut len = 0usize;
     while *ptr.offset(len as isize) != 0u8 {
@@ -9,6 +10,9 @@ unsafe fn strlen(ptr: *const u8) -> usize {
     }
     return len;
 }
+
+/* SAFETY: from here now we rely purely on multiboot spec, so you need to be sure
+ * that you are being booted by multiboot */
 
 #[repr(C)]
 pub struct Module {
