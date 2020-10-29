@@ -10,6 +10,8 @@ pub mod x86;
 pub mod serial_io;
 pub mod multiboot;
 
+use elf;
+
 const MAGIC: i32 = 0x1BADB002;
 const ALIGN_MODULES: i32 = 1 << 0;
 const MEMINFO: i32 = 1 << 1;
@@ -28,7 +30,7 @@ fn panic_handler(info: &core::panic::PanicInfo) -> ! {
     x86::disable_interrupts();
 
     print!("\nPANIK\n");
-    print!("\n{:?}\n", info);
+    print!("{:?}\n", info);
 
     loop {
         x86::halt();
@@ -63,9 +65,8 @@ pub fn _start() -> ! {
 }
 
 extern "fastcall" fn start(magic: i32, multiboot: *const multiboot::Info) -> ! {
-    print!("Hello!\n");
-    print!("Disabling interrupts\n");
     x86::disable_interrupts();
+    print!("Hello!\n");
 
     assert_eq!(magic, 0x2BADB002);
     print!("Loaded by multiboot\n");
@@ -78,6 +79,17 @@ extern "fastcall" fn start(magic: i32, multiboot: *const multiboot::Info) -> ! {
 
     for module in multiboot.modules() {
         print!("size: {} {:?}\n", module.bytes().len(), module.name());
+    }
+
+    let kernel = multiboot.modules()
+        .first()
+        .expect("no module was loaded with -initrd");
+
+    let kernel_elf = elf::Amd64::from_bytes(kernel.bytes()).unwrap();
+
+    print!("\nProgram headers:\n");
+    for header in kernel_elf.program_headers().unwrap() {
+        print!("{:?}\n", header);
     }
 
     print!("\nDone\n");
