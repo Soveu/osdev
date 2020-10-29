@@ -10,10 +10,6 @@ edition = "2018"
 bitflags = "1.2.1"
 spin = "0.7"
 
-[dependencies.lazy_static]
-version = "1.4"
-features = ["spin_no_std"]
-
 [dependencies.elf]
 version = "0.1"
 path = "../elf"

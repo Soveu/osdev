@@ -1,8 +1,7 @@
 mod serial;
 use serial::SerialPort;
 
-use lazy_static::lazy_static;
-use spin;
+use spin::{Lazy, Mutex};
 
 pub struct SerialIO {
     port: SerialPort,
@@ -23,9 +22,9 @@ impl fmt::Write for SerialIO {
     }
 }
 
-lazy_static! {
-    pub static ref WRITER: spin::Mutex<SerialIO> = spin::Mutex::new(SerialIO::new());
-}
+pub static WRITER: Lazy<Mutex<SerialIO>> = Lazy::new(|| {
+    Mutex::new(SerialIO::new())
+});
 
 /* Code from phil-opp osdev blog */
 
