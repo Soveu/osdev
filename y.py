@@ -1,18 +1,16 @@
 #!/usr/bin/python
 
-BOOTLOADER_PATH_DEBUG = "goodloader/target/i686-goodloader-none/debug/goodloader"
-BOOTLOADER_PATH_RELEASE = "goodloader/target/i686-goodloader-none/release/goodloader"
-
-KERNEL_PATH_DEBUG = "kernel/target/amd64-kernel-none/debug/kernel"
-KERNEL_PATH_RELEASE = "kernel/target/amd64-kernel-none/release/kernel"
+BOOTLOADER_PATH = "goodloader/target/i686-goodloader-none/%s/goodloader"
+KERNEL_PATH = "kernel/target/amd64-kernel-none/%s/kernel"
 
 QEMU = "qemu-system-x86_64"
 QEMU_ARGS = [
+    "-L", "/usr/share/edk2/ovmf",
     "-nodefaults",
     "-display", "none",
     "-serial", "stdio",
 
-    "-m", "1G",
+    "-m", "512M",
     "-cpu", "host",
     "-enable-kvm"
 ]
@@ -20,16 +18,23 @@ QEMU_ARGS = [
 import subprocess
 import os
 
-def run_debug():
-    build_debug()
+def bootloader_path(debug):
+    return BOOTLOADER_PATH % (["release", "debug"][debug])
+def kernel_path(debug):
+    return KERNEL_PATH % (["release", "debug"][debug])
+
+def run(debug=True):
+    build(debug)
+
     print("\n------ Running QEMU -----------\n")
-    args = QEMU_ARGS + ["-kernel", BOOTLOADER_PATH_DEBUG, "-initrd", KERNEL_PATH_DEBUG]
+    args = QEMU_ARGS + ["-kernel", bootloader_path(debug), "-initrd", kernel_path(debug)]
     os.execvp(QEMU, args)
 
-def build_debug():
+def build(debug=True):
+    args = ["cargo", "build"] + ["--release"] * (not debug)
     print("\n----- Building goodloader -----\n")
-    bootbuild = subprocess.run(["cargo", "build"], check=True, cwd="./goodloader")
+    bootbuild = subprocess.run(args, check=True, cwd="./goodloader")
     print("\n----- Building kernel ---------\n")
-    kernelbuild = subprocess.run(["cargo", "build"], check=True, cwd="./kernel")
+    kernelbuild = subprocess.run(args, check=True, cwd="./kernel")
     
-run_debug()
+run(debug=False)
