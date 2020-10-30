@@ -92,11 +92,6 @@ extern "fastcall" fn start(magic: i32, multiboot: *const multiboot::Info) -> ! {
         print!("{:?}\n", header);
     }
 
-    print!("\nMultiboot memory maps:\n");
-    for map in multiboot.memory_map().unwrap() {
-        print!("{:?}\n", map);
-    }
-
     print!("\nDone\n");
 
     loop {

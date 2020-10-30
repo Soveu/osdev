@@ -55,11 +55,7 @@ pub struct Info {
     cmdline: MaybeUninit<*const u8>,
     mods: MaybeUninit<(usize, *const Module)>,
 
-    _syms_stuff: MaybeUninit<[u32; 4]>,
-
-    mmap: MaybeUninit<(u32, u32)>,
-
-    _rest: MaybeUninit<[u8; 63]>,
+    _rest: MaybeUninit<[u8; 88]>,
 }
 
 impl Info {
@@ -99,87 +95,6 @@ impl Info {
         return unsafe {
             slice::from_raw_parts(ptr, len)
         };
-    }
-
-    pub fn memory_map(&self) -> Option<MemoryMapIter> {
-        if self.flags & (1 << 6) == 0 {
-            return None;
-        }
-
-        let (length, addr) = unsafe { self.mmap.assume_init() };
-        let iter = MemoryMapIter {
-            current: addr,
-            end: addr + length,
-            _lifetime: core::marker::PhantomData,
-        };
-        return Some(iter);
-    }
-}
-
-/* Code comes from multiboot crate */
-pub struct MemoryMapIter<'multiboot> {
-    current: u32,
-    end: u32,
-    _lifetime: core::marker::PhantomData<&'multiboot Info>,
-}
-
-impl<'multiboot> Iterator for MemoryMapIter<'multiboot> {
-    type Item = &'multiboot MemoryEntry;
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.current >= self.end {
-            return None;
-        }
-
-        let ptr = self.current as *const MemoryEntry;
-        let entry = unsafe { &*ptr };
-        self.current += (entry.size + 4);
-        return Some(entry);
-    }
-}
-
-#[repr(C)] 
-#[derive(Clone, Copy)]
-pub struct MemoryEntry {
-    size: u32, // note: size is defined at offset -4
-    base_addr: [u32; 2],
-    length: [u32; 2],
-    mtype: u32,
-}
-
-#[repr(u32)]
-#[derive(Clone, Copy, Debug)]
-pub enum MemoryEntryType {
-    AvaliableRam = 1,
-    AcpiInfo = 3,
-    HibernationReserved = 4,
-    DefectiveRamModule = 5,
-    Reserved,
-}
-
-impl MemoryEntryType {
-    pub fn from_integer(x: u32) -> Self {
-        match x {
-            1 => Self::AvaliableRam,
-            2 => Self::Reserved,
-            3 => Self::AcpiInfo,
-            4 => Self::HibernationReserved,
-            5 => Self::DefectiveRamModule,
-            _ => Self::Reserved,
-        }
-    }
-}
-
-impl core::fmt::Debug for MemoryEntry {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let base_addr = self.base_addr[0] as u64 | ((self.base_addr[1] as u64) << 32);
-        let length = self.length[0] as u64 | ((self.length[1] as u64) << 32);
-
-        f.write_fmt(format_args!("MemoryEntry {{ base_addr: 0x{:X}, length: 0x{:X}, type: {} = {:?} }}",
-            base_addr,
-            length,
-            self.mtype,
-            MemoryEntryType::from_integer(self.mtype),
-        ))
     }
 }
 

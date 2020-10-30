@@ -3,7 +3,6 @@
 
 #![feature(asm)]
 
-#[allow(unused_variables)]
 #[panic_handler]
 fn panic_handler(info: &core::panic::PanicInfo) -> ! {
     loop {

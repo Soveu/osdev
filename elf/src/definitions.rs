@@ -1,7 +1,7 @@
 #![allow(unused_parens)]
 #![allow(dead_code)]
 
-use bytemuck::{Contiguous, Zeroable, Pod};
+use bytemuck::{Zeroable, Pod};
 use core::num::NonZeroU64;
 
 pub const MAGIC: [u8; 4] = *b"\x7FELF";
@@ -91,7 +91,7 @@ impl Header {
 */
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct ProgramHeader {
     pub p_type: u32,
     pub p_flags: u32,
@@ -105,33 +105,6 @@ pub struct ProgramHeader {
     pub p_filesz: u64,
     pub p_memsz: u64,
     pub p_align: u64,
-}
-
-impl core::fmt::Debug for ProgramHeader {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut perms = ['_'; 3];
-        if self.p_flags & PF_R != 0 {
-            perms[0] = 'R';
-        }
-        if self.p_flags & PF_W != 0 {
-            perms[1] = 'W';
-        }
-        if self.p_flags & PF_X != 0 {
-            perms[2] = 'X';
-        }
-
-        f.write_fmt(format_args!("ProgramHeader {{ type: {:?}, flags: {}{}{}, \
-        offset: 0x{:X}, vaddr: 0x{:X}, paddr: 0x{:X}, filesz: {}, memsz: {}, p_align: 0x{:X} }}",
-            SegmentType::from_integer(self.p_type),
-            perms[0], perms[1], perms[2],
-            self.p_offset,
-            self.p_vaddr,
-            self.p_paddr,
-            self.p_filesz,
-            self.p_memsz,
-            self.p_align,
-        ))
-    }
 }
 
 #[repr(u8)]
@@ -211,10 +184,4 @@ unsafe impl Pod for ProgramHeader {}
 
 unsafe impl Zeroable for Header {}
 unsafe impl Pod for Header {}
-
-unsafe impl Contiguous for SegmentType {
-    type Int = u32;
-    const MIN_VALUE: u32 = SegmentType::Null as u32;
-    const MAX_VALUE: u32 = SegmentType::ThreadLocalStorage as u32;
-}
 
