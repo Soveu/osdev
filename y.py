@@ -5,12 +5,12 @@ KERNEL_PATH = "kernel/target/amd64-kernel-none/%s/kernel"
 
 QEMU = "qemu-system-x86_64"
 QEMU_ARGS = [
-    "-L", "/usr/share/edk2/ovmf",
     "-nodefaults",
     "-display", "none",
     "-serial", "stdio",
 
     "-m", "512M",
+#    "-S", "-s",
     "-cpu", "host",
     "-enable-kvm"
 ]
@@ -37,4 +37,4 @@ def build(debug=True):
     print("\n----- Building kernel ---------\n")
     kernelbuild = subprocess.run(args, check=True, cwd="./kernel")
     
-run(debug=False)
+run(debug=True)

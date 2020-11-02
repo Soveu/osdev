@@ -22,9 +22,7 @@ impl fmt::Write for SerialIO {
     }
 }
 
-pub static WRITER: Lazy<Mutex<SerialIO>> = Lazy::new(|| {
-    Mutex::new(SerialIO::new())
-});
+pub static WRITER: Lazy<Mutex<SerialIO>> = Lazy::new(|| Mutex::new(SerialIO::new()));
 
 /* Code from phil-opp osdev blog */
 
@@ -49,4 +47,3 @@ pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     WRITER.lock().write_fmt(args).unwrap();
 }
-

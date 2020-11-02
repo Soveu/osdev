@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-
 /* Code from flower-os */
 //! Thanks to https://en.wikibooks.org/wiki/Serial_Programming/8250_UART_Programming and OSDev wiki
 
@@ -60,12 +59,14 @@ impl<T: InOut> Port<T> {
 
     /// Write a value to `self.port`.
     pub fn write(&mut self, value: T) {
-        unsafe { T::port_out(self.port, value); }
+        unsafe {
+            T::port_out(self.port, value);
+        }
     }
 }
 
-use core::fmt::{self, Write};
 use bitflags::bitflags;
+use core::fmt::{self, Write};
 
 pub const PORT_1_ADDR: u16 = 0x3f8;
 pub const PORT_2_ADDR: u16 = 0x2f8;
@@ -155,7 +156,10 @@ impl SerialPort {
 
     /// Attempts to write one byte of data, returning whether it could.
     pub fn try_write(&mut self, data: u8) -> bool {
-        if self.status().contains(LineStatus::TRANSMITTER_HOLDING_REGISTER_EMPTY) {
+        if self
+            .status()
+            .contains(LineStatus::TRANSMITTER_HOLDING_REGISTER_EMPTY)
+        {
             self.data.write(data);
             true
         } else {

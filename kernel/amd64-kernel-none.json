@@ -24,6 +24,6 @@
   "linker-flavor": "ld.lld",
 
   "pre-link-args": {
-    "ld.lld": []
+    "ld.lld": ["--script=linker.ld"]
   }
 }

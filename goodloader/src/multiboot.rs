@@ -30,9 +30,7 @@ impl Module {
             return &[];
         }
 
-        return unsafe {
-            slice::from_raw_parts(self.start, len as usize)
-        };
+        return unsafe { slice::from_raw_parts(self.start, len as usize) };
     }
 
     pub fn name(&self) -> &str {
@@ -81,9 +79,7 @@ impl Info {
             return "";
         }
 
-        return unsafe {
-            str::from_utf8_unchecked(slice::from_raw_parts(ptr, strlen(ptr)))
-        };
+        return unsafe { str::from_utf8_unchecked(slice::from_raw_parts(ptr, strlen(ptr))) };
     }
 
     pub fn modules(&self) -> &[Module] {
@@ -96,9 +92,7 @@ impl Info {
             return &[];
         }
 
-        return unsafe {
-            slice::from_raw_parts(ptr, len)
-        };
+        return unsafe { slice::from_raw_parts(ptr, len) };
     }
 
     pub fn memory_map(&self) -> Option<MemoryMapIter> {
@@ -132,12 +126,12 @@ impl<'multiboot> Iterator for MemoryMapIter<'multiboot> {
 
         let ptr = self.current as *const MemoryEntry;
         let entry = unsafe { &*ptr };
-        self.current += (entry.size + 4);
+        self.current += entry.size + 4;
         return Some(entry);
     }
 }
 
-#[repr(C)] 
+#[repr(C)]
 #[derive(Clone, Copy)]
 pub struct MemoryEntry {
     size: u32, // note: size is defined at offset -4
@@ -174,7 +168,8 @@ impl core::fmt::Debug for MemoryEntry {
         let base_addr = self.base_addr[0] as u64 | ((self.base_addr[1] as u64) << 32);
         let length = self.length[0] as u64 | ((self.length[1] as u64) << 32);
 
-        f.write_fmt(format_args!("MemoryEntry {{ base_addr: 0x{:X}, length: 0x{:X}, type: {} = {:?} }}",
+        f.write_fmt(format_args!(
+            "MemoryEntry {{ base_addr: 0x{:X}, length: 0x{:X}, type: {} = {:?} }}",
             base_addr,
             length,
             self.mtype,
@@ -182,4 +177,3 @@ impl core::fmt::Debug for MemoryEntry {
         ))
     }
 }
-
