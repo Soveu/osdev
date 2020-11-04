@@ -1,7 +1,7 @@
 #![allow(unused_parens)]
 #![allow(dead_code)]
 
-use bytemuck::{Contiguous, Zeroable, Pod};
+use bytemuck::{Contiguous, Pod, Zeroable};
 use core::num::NonZeroU64;
 
 pub const MAGIC: [u8; 4] = *b"\x7FELF";
@@ -67,7 +67,7 @@ pub struct Header {
     pub e_phnum: u16,
     pub e_shentsize: u16,
     pub e_shnum: u16,
-    pub e_shstrndx: u16
+    pub e_shstrndx: u16,
 }
 
 /*
@@ -120,10 +120,13 @@ impl core::fmt::Debug for ProgramHeader {
             perms[2] = 'X';
         }
 
-        f.write_fmt(format_args!("ProgramHeader {{ type: {:?}, flags: {}{}{}, \
+        f.write_fmt(format_args!(
+            "ProgramHeader {{ type: {:?}, flags: {}{}{}, \
         offset: 0x{:X}, vaddr: 0x{:X}, paddr: 0x{:X}, filesz: {}, memsz: {}, p_align: 0x{:X} }}",
             SegmentType::from_integer(self.p_type),
-            perms[0], perms[1], perms[2],
+            perms[0],
+            perms[1],
+            perms[2],
             self.p_offset,
             self.p_vaddr,
             self.p_paddr,
@@ -152,7 +155,7 @@ pub enum Data {
 #[derive(Clone, Copy, Debug)]
 pub enum Type {
     None = 0,
-    Relocatable  = 1,
+    Relocatable = 1,
     Executable = 2,
     SharedObject = 3,
     Core = 4,
@@ -161,33 +164,33 @@ pub enum Type {
 #[repr(u16)]
 #[derive(Clone, Copy, Debug)]
 pub enum Machine {
-    None    = 0,
+    None = 0,
     PowerPC = 20,
     Power64 = 21,
-    Arm     = 40,
-    X86     = 3,
-    X64     = 62,
-    AmdGpu  = 224,
-    RiscV   = 243,
+    Arm = 40,
+    X86 = 3,
+    X64 = 62,
+    AmdGpu = 224,
+    RiscV = 243,
 }
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
 pub enum OsAbi {
-    None		= 0,    /* UNIX System V ABI */
-    Hpux		= 1,    /* HP-UX */
-    NetBSD		= 2,    /* NetBSD.  */
-    GnuLinux 	= 3,    /* Object uses GNU ELF extensions.  */
-    Solaris     = 6,    /* Sun Solaris.  */
-    Aix	        = 7,    /* IBM AIX.  */
-    Irix		= 8,    /* SGI Irix.  */
-    FreeBSD     = 9,    /* FreeBSD.  */
-    Tru64		= 10,	/* Compaq TRU64 UNIX.  */
-    Modesto     = 11,	/* Novell Modesto.  */
-    OpenBSD     = 12,	/* OpenBSD.  */
-    ArmAEABI 	= 64,	/* ARM EABI */
-    Arm         = 97,	/* ARM */
-    Standalone	= 255,	/* Standalone (embedded) application */
+    None = 0,         /* UNIX System V ABI */
+    Hpux = 1,         /* HP-UX */
+    NetBSD = 2,       /* NetBSD.  */
+    GnuLinux = 3,     /* Object uses GNU ELF extensions.  */
+    Solaris = 6,      /* Sun Solaris.  */
+    Aix = 7,          /* IBM AIX.  */
+    Irix = 8,         /* SGI Irix.  */
+    FreeBSD = 9,      /* FreeBSD.  */
+    Tru64 = 10,       /* Compaq TRU64 UNIX.  */
+    Modesto = 11,     /* Novell Modesto.  */
+    OpenBSD = 12,     /* OpenBSD.  */
+    ArmAEABI = 64,    /* ARM EABI */
+    Arm = 97,         /* ARM */
+    Standalone = 255, /* Standalone (embedded) application */
 }
 
 #[repr(u32)]
@@ -217,4 +220,3 @@ unsafe impl Contiguous for SegmentType {
     const MIN_VALUE: u32 = SegmentType::Null as u32;
     const MAX_VALUE: u32 = SegmentType::ThreadLocalStorage as u32;
 }
-

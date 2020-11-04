@@ -9,7 +9,7 @@ pub mod multiboot;
 pub mod serial_io;
 pub mod x86;
 
-use elf;
+use elf::{self, Elf};
 
 const MAGIC: i32 = 0x1BADB002;
 const ALIGN_MODULES: i32 = 1 << 0;
@@ -81,7 +81,7 @@ extern "fastcall" fn start(magic: i32, multiboot: *const multiboot::Info) -> ! {
         .first()
         .expect("no module was loaded with -initrd");
 
-    let kernel_elf = elf::Amd64::from_bytes(kernel.bytes()).unwrap();
+    let kernel_elf = Elf::<elf::Amd64>::from_bytes(kernel.bytes()).unwrap();
 
     print!("\nProgram headers:\n");
     for header in kernel_elf.program_headers().unwrap() {
@@ -93,14 +93,11 @@ extern "fastcall" fn start(magic: i32, multiboot: *const multiboot::Info) -> ! {
         print!("{:?}\n", map);
     }
 
-    print!("\nDone\n");
-    loop {
-        x86::halt();
-    }
+    unsafe { setup_long_mode(fake_long_mode as u32) };
 }
 
 #[allow(dead_code)]
-extern "fastcall" fn setup_long_mode(_jump: *const u8) -> ! {
+unsafe extern "fastcall" fn setup_long_mode(jump: u32) -> ! {
     #[repr(align(4096))]
     pub struct Pml4([u64; 512]);
 
@@ -120,89 +117,82 @@ extern "fastcall" fn setup_long_mode(_jump: *const u8) -> ! {
     print!("\n");
 
     /* SAFETY: we are on single thread and nobody has &mut to this object */
+    #[allow(unused_unsafe)]
     let pml4 = unsafe { &mut PML4 };
+    #[allow(unused_unsafe)]
     let pdpt = unsafe { &mut PDPT };
 
     /* Intel Software Developer Manual, Volume 3, Chapter 4 (Paging) */
     pml4.0[0] = (pdpt as *mut _ as u64) | (1 << 0/* present */) | (1 << 1/* writeable */);
     pdpt.0[0] = (0 << 30) | (1 << 0) | (1 << 1) | (1 << 7/* its a page, not directory */);
 
-    #[repr(C, align(4))]
+    #[repr(C)]
     struct GDTPointer(u16, u16, *const u64);
 
     let gdt_pointer = GDTPointer(0, 24 - 1, &GDT as *const u64);
 
     print!("Setting the PAE and PGE bit\n");
-    unsafe {
-        asm!(
-            "mov cr4, eax",
-            in("eax") 0b10100000,
-            options(nostack, nomem)
-        )
-    }
+    asm!(
+        "mov cr4, eax",
+        in("eax") 0b10100000,
+        options(nostack, nomem)
+    );
 
     print!("Pointing CR3 at the PML4\n");
-    unsafe {
-        asm!(
-            "mov cr3, eax",
-            in("eax") pml4.0.as_ptr(),
-            options(nostack, nomem)
-        )
-    }
+    asm!(
+        "mov cr3, eax",
+        in("eax") pml4.0.as_ptr(),
+        options(nostack, nomem)
+    );
 
     print!("Activating long mode\n");
-    unsafe {
-        asm!(
-            "rdmsr",
-            "or eax, 0x00000100",
-            "wrmsr",
-            "mov ebx, cr0",
-            "or ebx, 0x80000001",
-            "mov cr0, ebx",
-            in("ecx") 0xC0000080u32,
-            out("eax") _,
-            out("ebx") _,
-            options(nostack, nomem)
-        )
-    }
+    asm!(
+        "rdmsr",
+        "or eax, 0x00000100",
+        "wrmsr",
+        "mov ebx, cr0",
+        "or ebx, 0x80000001",
+        "mov cr0, ebx",
+        in("ecx") 0xC0000080u32,
+        out("eax") _,
+        out("ebx") _,
+        options(nostack, nomem)
+    );
 
     print!("Loading GDT\n");
-    unsafe {
-        asm!(
-            "lgdt [eax]",
-            in("eax") &gdt_pointer.1,
-            options(nostack, nomem)
-        )
-    }
+    asm!(
+        "add eax, 2",
+        "lgdt [eax]",
+        in("eax") &gdt_pointer,
+        options(nostack, nomem)
+    );
 
     print!("Taking a deep breath...");
-    for _ in 0..1000000 {
-        unsafe { asm!("", options(nostack, nomem)) }
+    for _ in 0..2000000 {
+        x86::nop();
     }
     print!(" Long jump!\n");
 
-    unsafe {
-        asm!(
-            "ljmp 0x0008, offset {}",
-            sym long_mode,
-            options(nostack, nomem, noreturn),
-        )
-    }
+    asm!(
+        "push word ptr 0x8", /* == pushw $8 */
+        "push eax",
+        "retf",
+        in("eax") jump,
+        options(nomem, noreturn),
+    );
 }
 
 #[naked]
-fn long_mode() -> ! {
-    unsafe {
-        asm!(
-            "mov ds, bx",
-            "mov es, bx",
-            "mov fs, bx",
-            "mov gs, bx",
-            "mov ss, bx",
-            in("ebx") 0x0010,
-            options(nostack, nomem),
-        )
-    }
+unsafe fn fake_long_mode() -> ! {
+    asm!(
+        "mov ss, ax",
+        "mov ds, ax",
+        "mov es, ax",
+        "mov fs, ax",
+        "mov gs, ax",
+        in("ax") 0,
+        options(nostack, nomem),
+    );
 
     loop {
         x86::halt();

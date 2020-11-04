@@ -3,11 +3,29 @@
 mod definitions;
 use definitions::*;
 
-use core::mem;
 use bytemuck;
+use core::mem;
 
-pub struct Amd64<'a> {
+pub struct Elf<'a, M: ElfMachine> {
     pub data: &'a [u8],
+    _phantom: core::marker::PhantomData<M>,
+}
+
+pub trait ElfMachine {
+    const CLASS: Class;
+    const ENDIANESS: Data;
+    const OSABI: OsAbi;
+    const ABIVERSION: u8;
+    const MACHINE: Machine;
+}
+
+pub struct Amd64;
+impl ElfMachine for Amd64 {
+    const CLASS: Class = Class::Bits64;
+    const ENDIANESS: Data = Data::Lsb;
+    const OSABI: OsAbi = OsAbi::None;
+    const ABIVERSION: u8 = 0;
+    const MACHINE: Machine = Machine::X64;
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -30,7 +48,7 @@ pub enum Error {
     UnsupportedVersion,
 }
 
-impl<'a> Amd64<'a> {
+impl<'a, M: ElfMachine> Elf<'a, M> {
     pub fn program_headers(&self) -> Result<&[ProgramHeader], MemoryError> {
         let header = self.header();
 
@@ -55,7 +73,7 @@ impl<'a> Amd64<'a> {
             Some(x) => x,
             None => return Err(MemoryError::UnexpectedEnd),
         };
-        
+
         return match bytemuck::try_cast_slice(chunk) {
             Ok(x) => Ok(x),
             Err(bytemuck::PodCastError::AlignmentMismatch) => Err(MemoryError::WrongAlignment),
@@ -82,19 +100,19 @@ impl<'a> Amd64<'a> {
         if header_ident.ei_magic != MAGIC {
             return Err(Error::NotElf);
         }
-        if header_ident.ei_class != Class::Bits64 as u8 {
+        if header_ident.ei_class != M::CLASS as u8 {
             return Err(Error::WrongClass);
         }
-        if header_ident.ei_data != Data::Lsb as u8 {
+        if header_ident.ei_data != M::ENDIANESS as u8 {
             return Err(Error::WrongEndianess);
         }
         if header_ident.ei_version != EV_CURRENT {
             return Err(Error::UnsupportedVersion);
         }
-        if header_ident.ei_osabi != OsAbi::None as u8 {
+        if header_ident.ei_osabi != M::OSABI as u8 {
             return Err(Error::WrongOsAbi);
         }
-        if header_ident.ei_abiversion != 0 {
+        if header_ident.ei_abiversion != M::ABIVERSION {
             return Err(Error::WrongOsAbi);
         }
 
@@ -109,14 +127,16 @@ impl<'a> Amd64<'a> {
         if header.e_type != Type::Executable as u16 {
             return Err(Error::NotExec);
         }
-        if header.e_machine != Machine::X64 as u16 {
+        if header.e_machine != M::MACHINE as u16 {
             return Err(Error::WrongMachine);
         }
         if header.e_version != EV_CURRENT as u32 {
             return Err(Error::UnsupportedVersion);
         }
 
-        return Ok(Self { data: elf });
+        return Ok(Self {
+            data: elf,
+            _phantom: core::marker::PhantomData,
+        });
     }
 }
-

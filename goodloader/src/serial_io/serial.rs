@@ -5,15 +5,17 @@
 use core::marker::PhantomData;
 
 /// Read a single byte from the port.
+#[inline(always)]
 pub unsafe fn inb(port: u16) -> u8 {
     let result: u8;
-    llvm_asm!("inb %dx, %al" : "={al}"(result) : "{dx}"(port) :: "volatile");
+    asm!("in al, dx", out("al") result, in("dx") port, options(nostack, nomem));
     result
 }
 
 /// Write a single byte to the port.
+#[inline(always)]
 pub unsafe fn outb(value: u8, port: u16) {
-    llvm_asm!("outb %al, %dx" :: "{dx}"(port), "{al}"(value) :: "volatile");
+    asm!("out dx, al", in("al") value, in("dx") port, options(nostack, nomem))
 }
 
 /// Nice little type that allows us to specify the size of the value read without using inb
@@ -178,7 +180,7 @@ impl Write for SerialPort {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct InvalidBaudrate(u32);
 
 bitflags! {

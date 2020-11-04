@@ -12,3 +12,10 @@ pub fn disable_interrupts() {
         asm!("cli", options(nostack));
     }
 }
+#[inline(always)]
+pub fn nop() {
+    /* SAFETY: nop does, well, nothing */
+    unsafe {
+        asm!("nop", options(nostack, nomem));
+    }
+}

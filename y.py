@@ -31,9 +31,11 @@ def run(debug=True):
     os.execvp(QEMU, args)
 
 def build(debug=True):
-    args = ["cargo", "build"] + ["--release"] * (not debug)
+    args = ["cargo", "build", "--release"]
     print("\n----- Building goodloader -----\n")
     bootbuild = subprocess.run(args, check=True, cwd="./goodloader")
+
+    args = ["cargo", "build"] + ["--release"] * (not debug)
     print("\n----- Building kernel ---------\n")
     kernelbuild = subprocess.run(args, check=True, cwd="./kernel")
     
